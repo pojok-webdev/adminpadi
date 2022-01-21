@@ -1,0 +1,84 @@
+<?php
+Class Surveys extends CI_Controller{
+    function __construct(){
+        parent::__construct();
+        $this->load->model('survey_image');
+    }
+    function index(){
+        $objs = $this->survey_image->gets();
+        $data = array(
+            'actstatus'=>array('surveys'=>'active','installs'=>''),
+            'pagetitle'=>$this->uri->segment(1),
+            'objs'=>$objs['res']
+        );
+        $this->load->view('TS/surveys/index',$data);
+    }
+    function images(){
+        $objs = $this->survey_image->gets();
+        $data = array(
+            'actstatus'=>array('surveys'=>'active','installs'=>''),
+            'pagetitle'=>$this->uri->segment(1).' / '.$this->uri->segment(2),
+            'objs'=>$objs['res']
+        );
+        $this->load->view('TS/surveys/survey_images',$data);
+    }
+    function getdata(){
+        $objs = $this->survey_image->gets();
+        $arr = array();
+        foreach($objs['res'] as $obj){
+            array_push($arr,'['.$obj->id.','.$obj->survey_site_id.',"X","Y","Z"]');
+        };
+        echo '{"data":['.implode(',',$arr).']}';
+    }
+    function getimages(){
+        $objs = $this->survey_image->gets();
+        echo json_encode($objs['res']);
+    }
+    function ajaxformat(){
+        echo '{
+            "data": [
+              [
+                "Tiger Nixon",
+                "System Architect",
+                "Edinburgh",
+                "5421",
+                "2011/04/25",
+                "$320,800"
+              ],
+              [
+                "Garrett Winters",
+                "Accountant",
+                "Tokyo",
+                "8422",
+                "2011/07/25",
+                "$170,750"
+              ]]}';
+    }
+    function saveImage($img,$imagename){
+        $img = str_replace('data:image/png;base64,', '', $img);
+        $img = str_replace(' ', '+', $img);
+        $fileData = base64_decode($img);
+        //$fileName = $this->config->item('surveyimagepath').$imagename.'.png';
+        $fileName = '/home/webdev/phpworkspace/adminpadi/images/'.$imagename.'.png';
+
+        file_put_contents($fileName, $fileData);
+    }
+    function saveImageJpeg($img,$imagename){
+        $img = str_replace('data:image/jpeg;base64,', '', $img);
+        $img = str_replace(' ', '+', $img);
+        $fileData = base64_decode($img);
+        //$fileName = $this->config->item('surveyimagepath').$imagename.'.png';
+        $fileName = '/home/webdev/phpworkspace/adminpadi/images/'.$imagename.'.jpg';
+
+        return file_put_contents($fileName, $fileData);
+    }
+    function save_image(){
+        $params = $this->input->post();
+        echo json_encode($this->saveImageJpeg($params['image'],$params['imagename']));
+//        echo json_encode($params);
+    }
+    function updaterow(){
+        $params = $this->input->post();
+        echo json_encode($this->survey_image->updaterow($params));
+    }
+}
